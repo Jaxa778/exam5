@@ -12,6 +12,7 @@ dependencies:
   camerawesome: ^2.0.0
   google_mlkit_text_recognition: ^0.15.0
   path_provider: ^2.1.5
+  # cunning_document_scanner: ^1.2.3 2-usul package
   
 
 dev_dependencies:

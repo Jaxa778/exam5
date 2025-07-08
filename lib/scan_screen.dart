@@ -409,3 +409,411 @@ class _CustomDocumentScannerState extends State<CustomDocumentScanner> {
     );
   }
 }
+
+
+//2-usul
+
+/**
+ * import 'package:flutter/material.dart';
+import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
+
+class ProfessionalDocumentScanner extends StatefulWidget {
+  const ProfessionalDocumentScanner({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _ProfessionalDocumentScannerState createState() =>
+      _ProfessionalDocumentScannerState();
+}
+
+class _ProfessionalDocumentScannerState
+    extends State<ProfessionalDocumentScanner> {
+  List<String> _scannedDocumentPaths = [];
+  String _extractedText = '';
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text("Scan"),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          // Scan qilingan hujjatni ko'rsatish
+          Expanded(
+            flex: 7,
+            child: Container(
+              margin: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: _scannedDocumentPaths.isNotEmpty
+                    ? PageView.builder(
+                        itemCount: _scannedDocumentPaths.length,
+                        itemBuilder: (context, index) {
+                          return Image.file(
+                            File(_scannedDocumentPaths[index]),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          );
+                        },
+                      )
+                    : Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: Colors.grey[800],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Scanning frame
+                            Container(
+                              width: 250,
+                              height: 150,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.green,
+                                  width: 3,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Stack(
+                                children: [
+                                  // Corner indicators
+                                  Positioned(
+                                    top: -5,
+                                    left: -5,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: -5,
+                                    right: -5,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: -5,
+                                    left: -5,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: -5,
+                                    right: -5,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.only(
+                                          bottomRight: Radius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Center icon
+                                  Center(
+                                    child: Icon(
+                                      Icons.credit_card,
+                                      color: Colors.grey[400],
+                                      size: 50,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'ID Card yoki Hujjat',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ),
+          ),
+
+          // Instructions
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Place your front side of your card on the box',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          SizedBox(height: 30),
+
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Scan button
+              GestureDetector(
+                onTap: _scanDocument,
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.3),
+                        spreadRadius: 5,
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.camera_alt_outlined,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ),
+
+              // OCR button
+              GestureDetector(
+                onTap: _extractText,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(Icons.text_fields, color: Colors.white, size: 20),
+                ),
+              ),
+
+              // Clear button
+              if (_scannedDocumentPaths.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _scannedDocumentPaths.clear();
+                      _extractedText = '';
+                    });
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.clear, color: Colors.white, size: 20),
+                  ),
+                ),
+            ],
+          ),
+
+          SizedBox(height: 30),
+
+          // OCR Results
+          if (_extractedText.isNotEmpty)
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey[700]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Aniqlangan matn:',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: _extractedText),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Matn nusxalandi!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.copy, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          _extractedText,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Professional document scanner
+  Future<void> _scanDocument() async {
+    try {
+      List<String> pictures = await CunningDocumentScanner.getPictures() ?? [];
+
+      if (pictures.isNotEmpty) {
+        setState(() {
+          _scannedDocumentPaths = pictures;
+        });
+
+        // Automatic OCR after scanning
+        await _extractText();
+      }
+    } catch (e) {
+      print('Scanning error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Skanerlashda xatolik: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // Extract text using OCR
+  Future<void> _extractText() async {
+    if (_scannedDocumentPaths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Avval hujjatni skanerlang!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _extractedText = '';
+    });
+
+    try {
+      final textRecognizer = TextRecognizer();
+      String allText = '';
+
+      // Process all scanned images
+      for (String imagePath in _scannedDocumentPaths) {
+        final inputImage = InputImage.fromFilePath(imagePath);
+        final recognizedText = await textRecognizer.processImage(inputImage);
+
+        if (recognizedText.text.isNotEmpty) {
+          allText += recognizedText.text + '\n\n';
+        }
+      }
+
+      setState(() {
+        _extractedText = allText.trim();
+        _isLoading = false;
+      });
+
+      await textRecognizer.close();
+
+      if (_extractedText.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Matn muvaffaqiyatli aniqlandi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hech qanday matn aniqlanmadi'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OCR xatoligi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+ */
